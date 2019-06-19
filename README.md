@@ -16,6 +16,8 @@ import telebot
 import requests
 ```
 
+Register your own telegram bot from [Bot father](https://core.telegram.org/bots#6-botfather)
+
 ## Using Telegram remote shell
 
 Remote bot commands:
