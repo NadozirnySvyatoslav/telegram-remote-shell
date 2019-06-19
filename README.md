@@ -54,6 +54,8 @@ Remote bot commands:
 ```
 any other message will be recognized as a command and you can upload files via attach files to the message
 
+![Screenshot2](screenshot2.PNG)
+
 ![Screenshot](screenshot.PNG)
 
 ## Authors
