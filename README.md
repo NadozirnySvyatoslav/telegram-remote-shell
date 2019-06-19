@@ -58,6 +58,8 @@ any other message will be recognized as a command and you can upload files via a
 
 ![Screenshot](screenshot.PNG)
 
+![Screenshot3](screenshot3.PNG)
+
 ## Authors
 
 * **Svyatoslav Nadozirny** - *Initial work* - [Telegram Remote Shell](https://github.com/NadozirnySvyatoslav/telegram-remote-shell)
