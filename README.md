@@ -12,7 +12,6 @@ You must have python and several libs
 import os
 import pyautogui
 import subprocess
-import config
 import telebot
 import requests
 ```
