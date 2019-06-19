@@ -16,7 +16,30 @@ import telebot
 import requests
 ```
 
-Register your own telegram bot from [Bot father](https://core.telegram.org/bots#6-botfather)
+Register your own telegram bot from [Bot father](https://core.telegram.org/bots#6-botfather) and get your TOKEN and BOTNAME for next
+
+Make file **config.py** and put your token to file
+```
+token="110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw"
+```
+
+Save file and run bot with command
+
+```
+python telegram-remote-shell.py
+```
+
+Or make executable and run
+
+```
+python -m pip install pyinstaller
+...
+pyinstaller --onefile telegram-remote-shell.py
+....
+dist\telegram-remote-shell.exe
+```
+
+Connect to your remote telegram shell via search @BOTNAME
 
 ## Using Telegram remote shell
 
