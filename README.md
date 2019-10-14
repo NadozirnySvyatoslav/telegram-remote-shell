@@ -12,7 +12,7 @@ You must have python and several libs
 import os
 import pyautogui
 import subprocess
-import telebot
+import telebot //python -m pip install pyTelegramBotAPI
 import requests
 ```
 
